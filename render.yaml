@@ -25,9 +25,10 @@ services:
           name: rate-limiter-redis
           property: connectionString
 
-  # 3. React Vite Frontend Dashboard
-  - type: static
+  # 3. React Vite Frontend Dashboard (Static Site)
+  - type: web
     name: rate-limiter-frontend
+    env: static
     plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
