@@ -1,0 +1,44 @@
+# Render Infrastructure-as-Code Blueprint
+# Deploy all 3 services (Redis, Backend Cluster, Frontend Dashboard) with one click on Render.com
+
+services:
+  # 1. Managed Redis Datastore
+  - type: redis
+    name: rate-limiter-redis
+    ipAllowList: [] # internal network access only
+    plan: free
+
+  # 2. Express Backend Cluster & Load Balancer
+  - type: web
+    name: rate-limiter-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --only=production
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: rate-limiter-redis
+          property: connectionString
+
+  # 3. React Vite Frontend Dashboard
+  - type: static
+    name: rate-limiter-frontend
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: rate-limiter-backend
+          property: url

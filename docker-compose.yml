@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Shared Redis Database Store
+  redis:
+    image: redis:7-alpine
+    container_name: rate-limiter-redis
+    ports:
+      - "6380:6379"
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Stateless Backend Cluster (3 Workers + Load Balancer on Port 3000)
+  backend-cluster:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rate-limiter-backend
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+      - "3002:3002"
+      - "3003:3003"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
+  # Production Frontend Web Dashboard
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:3000
+    container_name: rate-limiter-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend-cluster
+    restart: always
