@@ -34,8 +34,13 @@ export const CLIENT_CONFIGS = {
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 
 const redis = new Redis(REDIS_URL, {
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
   retryStrategy: (times) => Math.min(times * 100, 2000)
+});
+
+redis.on('error', (err) => {
+  console.error('[Redis Client Error]:', err.message);
 });
 
 const luaScriptPath = path.join(__dirname, 'token_bucket.lua');

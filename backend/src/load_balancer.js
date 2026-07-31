@@ -31,8 +31,9 @@ app.all('*', async (req, res) => {
       }
     };
 
-    // Remove host header to avoid target server header mismatches
+    // Remove headers that cause payload mismatch or proxy errors
     delete fetchOptions.headers.host;
+    delete fetchOptions.headers['content-length'];
 
     if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
       fetchOptions.body = JSON.stringify(req.body);
@@ -43,8 +44,19 @@ app.all('*', async (req, res) => {
 
     res.status(backendRes.status);
     backendRes.headers.forEach((value, key) => {
-      // Pass along custom headers except node response content length/encoding conflicts
-      if (!['content-length', 'content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
+      const lowerKey = key.toLowerCase();
+      // Strip headers that cause browser duplicate CORS or response truncation issues
+      if (
+        ![
+          'content-length',
+          'content-encoding',
+          'transfer-encoding',
+          'access-control-allow-origin',
+          'access-control-allow-credentials',
+          'access-control-allow-methods',
+          'access-control-allow-headers'
+        ].includes(lowerKey)
+      ) {
         res.setHeader(key, value);
       }
     });
