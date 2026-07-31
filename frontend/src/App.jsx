@@ -6,7 +6,10 @@ import ArchitectureModal from './components/ArchitectureModal';
 import { Flame, CheckCircle2, AlertTriangle, ShieldCheck, X } from 'lucide-react';
 import './App.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:3000';
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:3000';
+const API_BASE = rawApiBase.startsWith('http://') || rawApiBase.startsWith('https://')
+  ? rawApiBase
+  : `https://${rawApiBase}`;
 
 const CLIENT_DEFINITIONS = [
   {

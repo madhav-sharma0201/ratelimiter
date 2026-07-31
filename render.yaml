@@ -42,4 +42,4 @@ services:
         fromService:
           type: web
           name: rate-limiter-backend
-          property: url
+          property: host
