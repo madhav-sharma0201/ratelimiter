@@ -72,8 +72,8 @@ app.all('*', async (req, res) => {
 });
 
 if (process.env.NODE_ENV !== 'test' && !process.env.NO_LISTEN) {
-  app.listen(LB_PORT, () => {
-    console.log(`⚖️  [Load Balancer] Proxy running on http://127.0.0.1:${LB_PORT} -> Round Robin across [3001, 3002, 3003]`);
+  app.listen(LB_PORT, '0.0.0.0', () => {
+    console.log(`⚖️  [Load Balancer] Proxy running on port ${LB_PORT} -> Round Robin across [3001, 3002, 3003]`);
   });
 }
 
